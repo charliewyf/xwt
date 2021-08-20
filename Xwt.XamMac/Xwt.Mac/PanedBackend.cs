@@ -24,9 +24,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+using System;
 using AppKit;
 using Foundation;
 using Xwt.Backends;
+using CoreGraphics;
 
 namespace Xwt.Mac
 {
@@ -118,25 +120,76 @@ namespace Xwt.Mac
 				Widget.AddSubview (view2);
 		}
 
-		public double Position {
-			get {
-				return 0;
+		private double position;
+		public double Position{
+			get{
+				return position;
 			}
-			set {
+			set{
+				position = value;
+				this.DidResizeSubviews();
 			}
 		}
 		#endregion
 	}
-	
-	class CustomSplitView: NSSplitView, IViewObject
+
+	class CustomSplitView : NSSplitView, IViewObject
 	{
-		public NSView View {
-			get {
+		readonly nfloat initDividerPosition = 220;
+		bool needsDividerSet;
+
+		public NSView View{
+			get{
 				return this;
 			}
 		}
 
-		public ViewBackend Backend { get; set; }
+		private ViewBackend backend;
+		public ViewBackend Backend{
+			get{
+				return backend;
+			}
+			set{
+				if (value != null)
+				{
+
+					backend = value;
+					
+					if (Frame.Width == 0)
+					{
+						needsDividerSet = true;
+					}
+					else
+					{
+						SetDividerPosition();
+					}
+				}
+			}
+		}
+
+		public override CGRect Frame{
+			get{
+				return base.Frame;
+			}
+
+			set{
+				base.Frame = value;
+				if (value.Width == 0)
+				{
+					needsDividerSet = true;
+				}
+				else
+				{
+					SetDividerPosition();
+				}
+			}
+		}
+
+		void SetDividerPosition()
+		{
+			SetPositionOfDivider(initDividerPosition, 0);
+			needsDividerSet = false;
+		}
 	}
 }
 
